@@ -38,6 +38,9 @@ func handleStdin() {
 			}
 
 			for i, val := range result.Arguments {
+				if _, ok := val.(string); ok {
+					continue
+				}
 				parseInt, err := strconv.ParseInt(fmt.Sprint(val), 10, 64)
 				if err == nil {
 					result.Arguments[i] = parseInt
