@@ -17,6 +17,11 @@ type commandRequest struct {
 	ID        int64         `json:"request_id"`
 }
 
+type commandResponse struct {
+	Error string `json:"error"`
+	ID    int64  `json:"request_id"`
+}
+
 var connection *mpvipc.Connection
 
 func handleStdin() {
@@ -29,6 +34,7 @@ func handleStdin() {
 			err := json.Unmarshal([]byte(text), &result)
 			if err != nil {
 				log.Printf("Failed to unmarshal command: %s\n", err)
+				continue
 			}
 
 			for i, val := range result.Arguments {
@@ -43,11 +49,37 @@ func handleStdin() {
 				err := connection.Set(result.Arguments[1].(string), result.Arguments[2])
 				if err != nil {
 					log.Printf("Failed to set property '%s': %s\n", result.Arguments[1], err)
+					response := &commandResponse{
+						Error: fmt.Sprintf("Failed to set property: %s\n", err),
+						ID:    result.ID,
+					}
+					marshalled, _ := json.Marshal(response)
+					fmt.Println(string(marshalled))
+				} else {
+					response := &commandResponse{
+						Error: "success",
+						ID:    result.ID,
+					}
+					marshalled, _ := json.Marshal(response)
+					fmt.Println(string(marshalled))
 				}
 			} else {
 				_, err := connection.Call(result.Arguments...)
 				if err != nil {
 					log.Printf("Failed to send command: %s\n", err)
+					response := &commandResponse{
+						Error: fmt.Sprintf("Failed to set property: %s\n", err),
+						ID:    result.ID,
+					}
+					marshalled, _ := json.Marshal(response)
+					fmt.Println(string(marshalled))
+				} else {
+					response := &commandResponse{
+						Error: "success",
+						ID:    result.ID,
+					}
+					marshalled, _ := json.Marshal(response)
+					fmt.Println(string(marshalled))
 				}
 			}
 			continue
